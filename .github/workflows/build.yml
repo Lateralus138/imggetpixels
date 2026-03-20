@@ -2,12 +2,16 @@ name: Build and Release
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     tags: [ 'v*' ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
+
   build:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -51,12 +55,27 @@ jobs:
 
     - name: Rename and Prepare Binaries
       run: |
-        # Find the linux binary (it might be in a subdir depending on how it was uploaded)
-        find . -type f -name "imggetpixels" -not -name "*-linux" -exec mv {} imggetpixels-linux \;
-        # Find the windows binary
-        find . -type f -name "imggetpixels.exe" -not -name "*-windows.exe" -exec mv {} imggetpixels-windows.exe \;
+        echo "Listing all files for debugging:"
+        find . -maxdepth 3 -not -path '*/.*'
+        
+        # Move Linux binary if it exists
+        if [ -f "imggetpixels" ]; then
+          mv imggetpixels imggetpixels-linux
+        elif [ -f "build/imggetpixels" ]; then
+          mv build/imggetpixels imggetpixels-linux
+        fi
+
+        # Move Windows binary if it exists
+        if [ -f "imggetpixels.exe" ]; then
+          mv imggetpixels.exe imggetpixels-windows.exe
+        elif [ -f "Release/imggetpixels.exe" ]; then
+          mv Release/imggetpixels.exe imggetpixels-windows.exe
+        elif [ -f "build/Release/imggetpixels.exe" ]; then
+          mv build/Release/imggetpixels.exe imggetpixels-windows.exe
+        fi
+
         # Final check
-        ls -l imggetpixels-linux imggetpixels-windows.exe
+        ls -lh imggetpixels-linux imggetpixels-windows.exe || true
 
     - name: Release
       uses: softprops/action-gh-release@v2
