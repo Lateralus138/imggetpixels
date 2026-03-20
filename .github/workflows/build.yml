@@ -37,9 +37,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: imggetpixels-${{ matrix.os }}
-        path: |
-          build/imggetpixels
-          build/Release/imggetpixels.exe
+        path: ${{ matrix.os == 'windows-latest' && 'build/Release/imggetpixels.exe' || 'build/imggetpixels' }}
 
   release:
     name: Create Release
@@ -51,10 +49,14 @@ jobs:
       with:
         merge-multiple: true
 
-    - name: Rename binaries
+    - name: Rename and Prepare Binaries
       run: |
-        mv imggetpixels imggetpixels-linux
-        mv imggetpixels.exe imggetpixels-windows.exe
+        # Find the linux binary (it might be in a subdir depending on how it was uploaded)
+        find . -type f -name "imggetpixels" -not -name "*-linux" -exec mv {} imggetpixels-linux \;
+        # Find the windows binary
+        find . -type f -name "imggetpixels.exe" -not -name "*-windows.exe" -exec mv {} imggetpixels-windows.exe \;
+        # Final check
+        ls -l imggetpixels-linux imggetpixels-windows.exe
 
     - name: Release
       uses: softprops/action-gh-release@v2
