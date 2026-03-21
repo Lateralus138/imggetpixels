@@ -1,4 +1,4 @@
-Image Get Pixels
+# Image Get Pixels
 
 [![Readme Card](https://github-readme-stats-fast.vercel.app/api/pin/?username=Lateralus138&repo=imggetpixels&border_radius=24&theme=merko)](https://github.com/Pranesh-2005/github-readme-stats)
 

@@ -65,7 +65,6 @@ struct OutputConfig {
 
 void process_image_pixels(unsigned char* data, int width, int height, const OutputConfig& config) {
     int num_threads = std::max(1u, std::thread::hardware_concurrency());
-    // Heuristic: only use multiple threads for images larger than a certain size
     if (width * height < 10000) num_threads = 1;
 
     std::vector<std::string> results(num_threads);
@@ -131,65 +130,76 @@ void process_image_pixels(unsigned char* data, int width, int height, const Outp
     }
 }
 
+int handle_image(const ArgumentParser& parser) {
+    if (parser.get_argument_count() == 0) {
+        std::cerr << "Error: No image file specified.\n";
+        parser.print_help(HELP_HEADER, true);
+        return 1;
+    }
+
+    std::string filename = parser.get_arguments()[0];
+    int width, height, channels;
+    unsigned char* data = stbi_load(filename.c_str(), &width, &height, &channels, 4);
+
+    if (!data) {
+        std::cerr << "Error: Failed to load image '" << filename << "'.\n";
+        return 1;
+    }
+
+    int status = 0;
+    if (parser.is_switch_set("W") || parser.is_switch_set("width")) {
+        std::cout << width << "\n";
+    } else if (parser.is_switch_set("H") || parser.is_switch_set("height")) {
+        std::cout << height << "\n";
+    } else if (parser.is_switch_set("r") || parser.is_switch_set("resolution")) {
+        std::cout << width << "x" << height << "\n";
+    } else {
+        OutputConfig config = {
+            parser.is_switch_set("rgb"),
+            parser.is_switch_set("BGR"),
+            parser.is_switch_set("o") || parser.is_switch_set("opaque"),
+            parser.is_switch_set("c") || parser.is_switch_set("coordinates"),
+            parser.get_switch_value("p").value_or(parser.get_switch_value("prefix").value_or(""))
+        };
+        process_image_pixels(data, width, height, config);
+    }
+
+    stbi_image_free(data);
+    return status;
+}
+
+int run(int argc, char* argv[]) {
+    ArgumentParser parser(argc, argv);
+    setup_parser(parser);
+
+    try {
+        parser.parse();
+    } catch (const ArgumentParserException& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+        return 1;
+    }
+
+    if (parser.is_switch_set("v") || parser.is_switch_set("version")) {
+        std::cout << "imggetpixels version " << PROJECT_VERSION << "\n";
+        return 0;
+    }
+
+    if (parser.is_switch_set("h") || parser.is_switch_set("help")) {
+        parser.print_help(HELP_HEADER, true);
+        return 0;
+    }
+
+    return handle_image(parser);
+}
+
 int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
 
     try {
-        ArgumentParser parser(argc, argv);
-        setup_parser(parser);
-        parser.parse();
-
-        if (parser.is_switch_set("v") || parser.is_switch_set("version")) {
-            std::cout << "imggetpixels version " << PROJECT_VERSION << "\n";
-            return 0;
-        }
-
-        if (parser.is_switch_set("h") || parser.is_switch_set("help")) {
-            parser.print_help(HELP_HEADER, true);
-            return 0;
-        }
-
-        if (parser.get_argument_count() == 0) {
-            std::cerr << "Error: No image file specified.\n";
-            parser.print_help(HELP_HEADER, true);
-            return 1;
-        }
-
-        std::string filename = parser.get_arguments()[0];
-        int width, height, channels;
-        unsigned char* data = stbi_load(filename.c_str(), &width, &height, &channels, 4);
-
-        if (!data) {
-            std::cerr << "Error: Failed to load image '" << filename << "'.\n";
-            return 1;
-        }
-
-        if (parser.is_switch_set("W") || parser.is_switch_set("width")) {
-            std::cout << width << "\n";
-        } else if (parser.is_switch_set("H") || parser.is_switch_set("height")) {
-            std::cout << height << "\n";
-        } else if (parser.is_switch_set("r") || parser.is_switch_set("resolution")) {
-            std::cout << width << "x" << height << "\n";
-        } else {
-            OutputConfig config = {
-                parser.is_switch_set("rgb"),
-                parser.is_switch_set("BGR"),
-                parser.is_switch_set("o") || parser.is_switch_set("opaque"),
-                parser.is_switch_set("c") || parser.is_switch_set("coordinates"),
-                parser.get_switch_value("p").value_or(parser.get_switch_value("prefix").value_or(""))
-            };
-            process_image_pixels(data, width, height, config);
-        }
-
-        stbi_image_free(data);
-    } catch (const ArgumentParserException& e) {
-        std::cerr << "Error: " << e.what() << "\n";
-        return 1;
+        return run(argc, argv);
     } catch (const std::exception& e) {
         std::cerr << "Unexpected error: " << e.what() << "\n";
         return 1;
     }
-
-    return 0;
 }
