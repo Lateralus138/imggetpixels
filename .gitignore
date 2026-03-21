@@ -11,7 +11,7 @@ Makefile
 _CPack_Packages/
 CPackConfig.cmake
 CPackSourceConfig.cmake
-
+temp/
 # Visual Studio / MSVC artifacts
 *.sln
 *.vcxproj
