@@ -46,6 +46,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned - Definite
+- Get the closest color of each pixel from list of colors (-C, --closest-list).
+  - Listed values would a string delimited by a ';' so that both hexadecimal and rgb/bgr values could be passed (E.g. "55,127,255;255,0,127;...")
+  - This could be used to generate copies of an image using a palette.
+- Output (-O, --ouput) an image from the the retrieved colors.
+  - E.g. if --opaque is provided the new file would 
+  - E.g. if -C, --closest-list is used it would generate the new image using the palette.
+  - Otherwise it just makes a copy.
+
 ### Planned - Considerations
 - Batch processing for entire directories.
 - Export functionality to JSON, CSV, and XML.
