@@ -6,8 +6,13 @@ on:
     tags: [ 'v*' ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
 env:
+  RELEASE_TITLE: "Image Get Pixels"
+  RELEASE_FILE: "./docs/md/release.md"
+  PRERELEASE_FILE: "./docs/md/pre-release.md"
+  PRERELEASE: false
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
@@ -46,42 +51,102 @@ jobs:
   release:
     name: Create Release
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/download-artifact@v7
+    - uses: actions/checkout@v6
+
+    - name: Download Artifacts
+      uses: actions/download-artifact@v6
       with:
-        merge-multiple: true
+        path: artifacts
 
     - name: Rename and Prepare Binaries
       run: |
-        echo "Listing all files for debugging:"
-        find . -maxdepth 3 -not -path '*/.*'
-        
-        # Move Linux binary if it exists
-        if [ -f "imggetpixels" ]; then
-          mv imggetpixels imggetpixels-linux
-        elif [ -f "build/imggetpixels" ]; then
-          mv build/imggetpixels imggetpixels-linux
+        mkdir -p release
+        # Linux binary
+        if [ -f "artifacts/imggetpixels-ubuntu-latest/imggetpixels" ]; then
+          cp artifacts/imggetpixels-ubuntu-latest/imggetpixels release/imggetpixels-linux
+        fi
+        # Windows binary
+        if [ -f "artifacts/imggetpixels-windows-latest/imggetpixels.exe" ]; then
+          cp artifacts/imggetpixels-windows-latest/imggetpixels.exe release/imggetpixels-windows.exe
+        fi
+        ls -lh release/
+
+    - name: Generate and Commit SHA256 JSON Badges
+      if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+      run: |
+        mkdir -p docs/json
+
+        WIN_HASH=$(sha256sum release/imggetpixels-windows.exe | cut -d ' ' -f1)
+        LINUX_HASH=$(sha256sum release/imggetpixels-linux | cut -d ' ' -f1)
+
+        cat > docs/json/imggetpixels-windows_x64_sha256.json << EOF
+        {
+          "schemaVersion": 1,
+          "color": "2E9778",
+          "label": "imggetpixels-windows.exe SHA256",
+          "message": "${WIN_HASH}",
+          "labelColor": "1d1d1d",
+          "style": "for-the-badge",
+          "namedLogo": "windows"
+        }
+        EOF
+
+        cat > docs/json/imggetpixels-linux_x64_sha256.json << EOF
+        {
+          "schemaVersion": 1,
+          "color": "2E9778",
+          "label": "imggetpixels-linux SHA256",
+          "message": "${LINUX_HASH}",
+          "labelColor": "1d1d1d",
+          "style": "for-the-badge",
+          "namedLogo": "linux"
+        }
+        EOF
+
+        git config --global user.name 'Lateralus138'
+        git config --global user.email 'Lateralus138@users.noreply.github.com'
+        git add docs/json/*.json
+        git commit --allow-empty -m "Update SHA256 hash badges. - $(date -u) UTC"
+        git push origin master
+
+    - name: Read Version
+      id: version
+      run: |
+        VERSION=$(cat VERSION)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Determine Release Body File
+      id: release-body
+      run: |
+        if [ "${{ env.PRERELEASE }}" = "true" ]; then
+          echo "body_file=${{ env.PRERELEASE_FILE }}" >> $GITHUB_OUTPUT
+        else
+          echo "body_file=${{ env.RELEASE_FILE }}" >> $GITHUB_OUTPUT
         fi
 
-        # Move Windows binary if it exists
-        if [ -f "imggetpixels.exe" ]; then
-          mv imggetpixels.exe imggetpixels-windows.exe
-        elif [ -f "Release/imggetpixels.exe" ]; then
-          mv Release/imggetpixels.exe imggetpixels-windows.exe
-        elif [ -f "build/Release/imggetpixels.exe" ]; then
-          mv build/Release/imggetpixels.exe imggetpixels-windows.exe
-        fi
+    - name: Read Release Body
+      id: release-content
+      run: |
+        BODY=$(cat ${{ steps.release-body.outputs.body_file }})
+        {
+          echo "body<<EOF"
+          echo "$BODY"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
 
-        # Final check
-        ls -lh imggetpixels-linux imggetpixels-windows.exe || true
-
-    - name: Release
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v2
       with:
+        tag_name: ${{ github.ref_name }}
+        name: ${{ env.RELEASE_TITLE }} - ${{ github.ref_name }}
+        body: ${{ steps.release-content.outputs.body }}
         files: |
-          imggetpixels-linux
-          imggetpixels-windows.exe
+          release/imggetpixels-linux
+          release/imggetpixels-windows.exe
+        prerelease: ${{ env.PRERELEASE }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
