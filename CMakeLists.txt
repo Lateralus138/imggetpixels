@@ -22,6 +22,10 @@ string(TIMESTAMP COPYRIGHT_YEAR "%Y")
 
 # Windows Resource file
 if(WIN32)
+    set(PROJECT_ICON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/docs/media/icons/imggetpixels.ico")
+    file(TO_NATIVE_PATH "${PROJECT_ICON_PATH}" PROJECT_ICON_PATH)
+    string(REPLACE "\\" "\\\\" PROJECT_ICON_PATH "${PROJECT_ICON_PATH}")
+
     configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/src/include/resource.rc.in"
         "${CMAKE_CURRENT_BINARY_DIR}/resource.rc"
