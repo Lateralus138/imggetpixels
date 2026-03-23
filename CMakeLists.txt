@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(imggetpixels VERSION 1.0.0 LANGUAGES CXX)
+project(imggetpixels VERSION 1.1.0 LANGUAGES CXX)
 
 # Standard C++20
 set(CMAKE_CXX_STANDARD 20)

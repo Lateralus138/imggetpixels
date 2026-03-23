@@ -77,6 +77,9 @@ imggetpixels [OPTIONS] IMAGE_FILE
 - `-r, --resolution` - Only return the width and height of the image
 - `-W, --width` - Only return the image's width
 - `-H, --height` - Only return the image's height
+- `-C, --closest-list` - Match pixels against a semicolon-delimited palette (CIEDE2000)
+- `-R, --resize` - Resize image before output (format: <WIDTH>x<HEIGHT>)
+- `-O, --output` - Save processed pixels to a new image file
 
 ### Examples
 
@@ -89,25 +92,25 @@ imggetpixels --resolution my_image.png
 imggetpixels -W icon.jpg
 ```
 
-**Color Extraction:**
+**Color Extraction & Processing:**
 ```bash
 # Get all pixel colors in hex format
 imggetpixels my_image.png
 
-# Get colors in RGB format with transparency
-imggetpixels --rgb my_image.png
+# Match pixels against a palette using CIEDE2000
+imggetpixels -C "#FF0000;#00FF00;#0000FF" input.png
 
-# Get opaque hex values with a "0x" prefix
-imggetpixels -o -p "0x" logo.png
+# Resize image and save to a new file
+imggetpixels -R 32x32 -O thumbnail.png large_photo.jpg
 ```
 
 **Advanced Usage:**
 ```bash
+# Combine multiple options: Resize, match palette, and save
+imggetpixels -R 16x16 -C "0x000000;0xFFFFFF" -O sprite.png input.png
+
 # Map colors to coordinates
 imggetpixels --coordinates screenshot.bmp
-
-# Get BGR values for a specific image
-imggetpixels --BGR texture.tga
 ```
 
 **Help and Version:**

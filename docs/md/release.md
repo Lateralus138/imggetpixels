@@ -1,12 +1,12 @@
 # Release Information
 
-## Current Release: v1.0.0
+## Current Release: v1.1.0
 
 ### Release Date
-January 9, 2026
+March 22, 2026
 
 ### Overview
-This is the initial stable release of Image Get Pixels, providing a cross-platform command-line utility for extracting pixel colors and resolution data from images on Windows and Linux.
+This release introduces significant new features, including perceptually accurate color matching using the CIEDE2000 formula, smart image resizing, and direct image output support.
 
 ### Downloads
 - **Windows**: `imggetpixels-windows.exe` - Native Windows x64 executable
@@ -16,45 +16,23 @@ This is the initial stable release of Image Get Pixels, providing a cross-platfo
 - **Windows**: Windows 10 or later (x64)
 - **Linux**: Any modern distribution (x64) with standard C++ libraries
 
-### Installation
-1. Download the appropriate binary for your operating system.
-2. Place the executable in your preferred directory.
-3. Add the directory to your system PATH (optional, for global access).
-4. Run `imggetpixels --help` to confirm it is working correctly.
+### New in v1.1.0
+- **CIEDE2000 Color Matching**: Highly accurate color matching against palettes.
+- **Smart Resizing**: Resize images on-the-fly with smooth interpolation.
+- **Direct Image Output**: Save your results directly to PNG, BMP, TGA, or JPG.
+- **Enhanced CLI**: New options for mixed palette formats and improved help documentation.
 
-### Quick Start
+### Quick Start (New Features)
 ```bash
-# Show image resolution (WIDTHxHEIGHT)
-imggetpixels --resolution my_image.png
+# Resize and save to a new file
+imggetpixels -R 64x64 -O thumb.png input.jpg
 
-# Get all pixel colors in hex format (default)
-imggetpixels my_image.png
+# Match pixels against a palette and save
+imggetpixels -C "#000000;#FFFFFF;#FF0000" -O mapped.png input.png
 
-# Output colors in RGB with transparency
-imggetpixels --rgb icon.png
-
-# Get colors with coordinates (x,y: COLOR)
-imggetpixels --coordinates screenshot.bmp
-
-# Get opaque hex values with a "0x" prefix
-imggetpixels -o -p "0x" logo.png
-
-# Get only image width
-imggetpixels -W texture.tga
-
-# Get only image height
-imggetpixels -H texture.tga
+# Combine resizing and palette matching
+imggetpixels -R 32x32 -C "0x000000;0x00FF00" -O sprite.png input.png
 ```
-
-### Key Features
-- **Fast Extraction**: Optimized for quick pixel querying using the `stb_image` library.
-- **Flexible Formats**: Supports RGB, BGR, and hex formats with optional transparency.
-- **Lightweight**: Small binary size with no heavy external library dependencies.
-- **Coordinate Mapping**: Easily associate pixel data with image locations.
-- **CLI-Focused**: Designed for piping and integration into larger script workflows.
-
-### Security & Verification
-All binaries are cryptographically signed and verified. SHA256 hashes are provided for integrity verification in the main README.
 
 ## Changelog
 
@@ -64,7 +42,7 @@ See [Changelog](./docs/md/reference/changelog.md)
 
 ## Previous Releases
 
-No previous releases available - this is the initial release.
+- **v1.0.0** (January 9, 2026): Initial stable release.
 
 ## Support
 
