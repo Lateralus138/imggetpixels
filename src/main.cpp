@@ -110,7 +110,7 @@ double delta_e_2000(const Lab& lab1, const Lab& lab2) {
 
     auto get_hp = [](double b, double ap) {
         if (b == 0 && ap == 0) return 0.0;
-        double h = std::atan2(b, ap) * 180.0 / M_PI;
+        double h = std::atan2(b, ap) * 180.0 / std::numbers::pi;
         return (h >= 0) ? h : (h + 360.0);
     };
 
@@ -125,7 +125,7 @@ double delta_e_2000(const Lab& lab1, const Lab& lab2) {
         else if (h2p - h1p > 180.0) dhp = h2p - h1p - 360.0;
         else dhp = h2p - h1p + 360.0;
     }
-    double dHp = 2.0 * std::sqrt(C1p * C2p) * std::sin(dhp * M_PI / 360.0);
+    double dHp = 2.0 * std::sqrt(C1p * C2p) * std::sin(dhp * std::numbers::pi / 360.0);
 
     double avg_Lp = (L1 + L2) / 2.0;
     double avg_Cp = (C1p + C2p) / 2.0;
@@ -136,17 +136,17 @@ double delta_e_2000(const Lab& lab1, const Lab& lab2) {
         else avg_hp = (h1p + h2p - 360.0) / 2.0;
     }
 
-    double T = 1.0 - 0.17 * std::cos((avg_hp - 30.0) * M_PI / 180.0) +
-               0.24 * std::cos((2.0 * avg_hp) * M_PI / 180.0) +
-               0.32 * std::cos((3.0 * avg_hp + 6.0) * M_PI / 180.0) -
-               0.20 * std::cos((4.0 * avg_hp - 63.0) * M_PI / 180.0);
+    double T = 1.0 - 0.17 * std::cos((avg_hp - 30.0) * std::numbers::pi / 180.0) +
+               0.24 * std::cos((2.0 * avg_hp) * std::numbers::pi / 180.0) +
+               0.32 * std::cos((3.0 * avg_hp + 6.0) * std::numbers::pi / 180.0) -
+               0.20 * std::cos((4.0 * avg_hp - 63.0) * std::numbers::pi / 180.0);
 
     double dtheta = 30.0 * std::exp(-std::pow((avg_hp - 275.0) / 25.0, 2.0));
     double RC = 2.0 * std::sqrt(std::pow(avg_Cp, 7.0) / (std::pow(avg_Cp, 7.0) + std::pow(25.0, 7.0)));
     double SL = 1.0 + (0.015 * std::pow(avg_Lp - 50.0, 2.0)) / std::sqrt(20.0 + std::pow(avg_Lp - 50.0, 2.0));
     double SC = 1.0 + 0.045 * avg_Cp;
     double SH = 1.0 + 0.015 * avg_Cp * T;
-    double RT = -std::sin(2.0 * dtheta * M_PI / 180.0) * RC;
+    double RT = -std::sin(2.0 * dtheta * std::numbers::pi / 180.0) * RC;
 
     return std::sqrt(std::pow(dLp / (kL * SL), 2.0) +
                      std::pow(dCp / (kC * SC), 2.0) +

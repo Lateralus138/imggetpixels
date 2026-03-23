@@ -52,6 +52,7 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE src/include/pch.h)
 if(MSVC)
     # /utf-8 ensures source is read correctly; /W4 for high-quality warnings
     target_compile_options(${PROJECT_NAME} PRIVATE /W4 /utf-8)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
 endif()
